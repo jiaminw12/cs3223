@@ -1,0 +1,39 @@
+Instruction for setting up environment variables
+For WINDOWS users (has been tested on both Windows 7 and 10):
+1.       Go to "System Property" ->''Advanced"-> "Environment Variables"
+2.       In the upper panel ''User variables for xxx'',  click ''New...".   Variable Name: COMPONENT     Variable Value: directory to your component
+3.       In the upper panel ''User variables for xxx'',  find the variable ''CLASSPATH''. If found, click "Edit..." otherwise click "New..."
+4.       Add/append the following to the variable ''CLASSPATH" :    %COMPONENT%;%COMPONENT%\classes;%COMPONENT%\lib\CUP;%COMPONENT%\lib\JLEX
+5.       Save the change, and start a new command line window. You may test: echo %CLASSPATH% to see whether the setup takes effect or not.
+ 
+
+
+For Eclipse setup (also valid for Unix system):
+1.       Create a new project named ''CS3223" (or whatever name)
+2.       Right click "CS3223" -> new-> source folder. Name the source folder ''testcases"
+3.       Copy the contents under ''Component/src'' to  ''CS3223/src''  (You can drag and drop)
+4.       Copy ''Component/testcases/*.java'' to ''CS3223/testcases" (Also drag and drop)
+5.       Copy  every file in ''Component/testcases/"  except *.java to  CS3223 (Drag and drop)
+6.       Right click "CS3223"->"Build Path"->"Configure Build Path"->"Libraries"->"Add External Class Folder",  add "Component/lib/CUP" and "Component/lib/JLex"
+7.       At this step, you should see no more red underlines in the source code. You are ready to go.
+
+For UNIX users, you can also use the file queryenv (found in Component/) to set up the environment, i.e., type “source queryenv”.
+ 
+4. If in windows, use build.bat file to compile the system, if in UNIX, use build.sh file.
+
+
+
+sudo vim ~/.bash_profile
+
+export PATH="/Users/jiamin/Downloads/cs3223/classes:/Users/jiamin/Downloads/cs3223/lib/JLEX:/Users/jiamin/Downloads/cs3223/lib/CUP:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+http://cs.haifa.ac.il/courses/compilers/BILAL/Tutorials/JLex_CUP_tools.pdf
+
+JLEX
+http://www.cs.princeton.edu/~appel/modern/java/JLex/current/README
+
+
+CUP
+http://www.skenz.it/compilers/installLinux.html
+
+	./INSTALL
