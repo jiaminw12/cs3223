@@ -1,8 +1,8 @@
 6
-176
-flno INTEGER 200 PK 4
-from STRING 40 NK 80
-to STRING 40 NK 80
-distance INTEGER 20 NK 4
-departs TIME 20 NK 4
-arrive TIME 20 NK 4
+56
+flno INTEGER 49800 PK 4
+from STRING 10 NK 20
+to STRING 10 NK 20
+distance INTEGER 200 NK 4
+departs INTEGER 4 NK 4
+arrive INTEGER 4 NK 4

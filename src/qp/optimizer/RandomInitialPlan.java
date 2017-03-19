@@ -157,8 +157,9 @@ public class RandomInitialPlan{
 	     **/
 
 	    while(bitCList.get(jnnum)){
-		jnnum = RandNumb.randInt(0,numJoin-1);
+	    	jnnum = RandNumb.randInt(0,numJoin-1);
 	    }
+	    
 	    Condition cn = (Condition) joinlist.elementAt(jnnum);
 	    String lefttab = cn.getLhs().getTabName();
 	    String righttab = ((Attribute) cn.getRhs()).getTabName();
@@ -171,9 +172,15 @@ public class RandomInitialPlan{
 	    jn.setNodeIndex(jnnum);
 	    Schema newsche = left.getSchema().joinWith(right.getSchema());
 	    jn.setSchema(newsche);
-	    /** randomly select a join type**/
+	    
+		/** randomly select a join type **/
 	    int numJMeth = JoinType.numJoinTypes();
 	    int joinMeth = RandNumb.randInt(0,numJMeth-1);
+	    
+	    System.out.println();
+	    System.out.println("RandomInitialPlan : " + joinMeth + " ; numJMeth : " + numJMeth);
+	    System.out.println();
+	    
 	    jn.setJoinType(joinMeth);
 
 	    modifyHashtable(left,jn);
