@@ -4,23 +4,25 @@ all the join operators
 
 package qp.optimizer;
 
+public class BufferManager {
 
-public class BufferManager{
+	static int numBuffer;
+	static int numJoin;
 
-    static int numBuffer;
-    static int numJoin;
+	static int buffPerJoin;
 
-    static int buffPerJoin;
+	public BufferManager(int numBuffer, int numJoin) {
+		this.numBuffer = numBuffer;
+		this.numJoin = numJoin;
+		buffPerJoin = numBuffer / numJoin;
+	}
 
-
-    public BufferManager(int numBuffer, int numJoin){
-	this.numBuffer = numBuffer;
-	this.numJoin = numJoin;
-	buffPerJoin = numBuffer/numJoin;
-    }
-
-    public static int getBuffersPerJoin(){
-	return buffPerJoin;
-    }
+	public static int getBuffersPerJoin() {
+		return buffPerJoin;
+	}
+	
+	public static int getNumBuffer(){
+		return numBuffer;
+	}
 
 }
