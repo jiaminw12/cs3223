@@ -95,8 +95,7 @@ public class QueryMain {
 			System.exit(1);
 		}
 
-		System.out.println(
-				"Please choose one of the following: \n "
+		System.out.println("Please choose one of the following: \n "
 				+ "1. Nested Join. \n 2. Block Nested Loop Join. \n 3. Sort Merge Join");
 		try {
 			temp = in.readLine();

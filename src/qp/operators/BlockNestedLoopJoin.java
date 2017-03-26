@@ -38,6 +38,7 @@ public class BlockNestedLoopJoin extends Join {
 
 	int lcurs; // Cursor for left side buffer
 	int rcurs; // Cursor for right side buffer
+	int curs;  // Cursor for inner
 	boolean eosl; // Whether end of stream (left table) is reached
 	boolean eosr; // End of stream (right table)
 
@@ -58,7 +59,7 @@ public class BlockNestedLoopJoin extends Join {
 		/** select number of tuples per batch **/
 		int tuplesize = schema.getTupleSize();
 		batchsize = Batch.getPageSize() / tuplesize;
-		
+
 		Attribute leftattr = con.getLhs();
 		Attribute rightattr = (Attribute) con.getRhs();
 		leftindex = left.getSchema().indexOf(leftattr);
@@ -69,6 +70,9 @@ public class BlockNestedLoopJoin extends Join {
 		block = new ArrayList<Batch>(numBuff - 2);
 		lcurs = 0;
 		rcurs = 0;
+
+		curs = 0;
+
 		eosl = false;
 		/**
 		 * because right stream is to be repetitively scanned if it reached end,
@@ -121,6 +125,9 @@ public class BlockNestedLoopJoin extends Join {
 	 **/
 
 	public Batch next() {
+
+		//System.out.println("block size :: " + block.size());
+
 		int i, j;
 		if (eosl) {
 			close();
@@ -131,7 +138,7 @@ public class BlockNestedLoopJoin extends Join {
 		while (!outbatch.isFull()) {
 
 			if (lcurs == 0 && eosr == true) {
-				
+
 				/** new left page is to be fetched **/
 				int z = 0;
 				while (z < numBuff - 2) {
@@ -169,15 +176,17 @@ public class BlockNestedLoopJoin extends Join {
 					if (rcurs == 0 && lcurs == 0) {
 						rightbatch = (Batch) in.readObject();
 					}
-					
-					int m = 0;
-					while (m < numBuff - 2) {
-						leftbatch = block.get(m);
-						
-						if (leftbatch == null) {
+
+					for (int m = 0; m < block.size(); m++){
+						if (curs == block.size()-1){
 							break;
 						}
 						
+						leftbatch = block.get(curs);
+						if (leftbatch == null) {
+							break;
+						}
+
 						for (i = lcurs; i < leftbatch.size(); i++) {
 							for (j = rcurs; j < rightbatch.size(); j++) {
 								Tuple lefttuple = leftbatch.elementAt(i);
@@ -187,8 +196,8 @@ public class BlockNestedLoopJoin extends Join {
 									Tuple outtuple = lefttuple
 											.joinWith(righttuple);
 
-									//Debug.PPrint(outtuple);
-									//System.out.println();
+									// Debug.PPrint(outtuple);
+									// System.out.println();
 									outbatch.add(outtuple);
 									if (outbatch.isFull()) {
 										if (i == leftbatch.size() - 1
@@ -196,6 +205,8 @@ public class BlockNestedLoopJoin extends Join {
 																				// 1
 											lcurs = 0;
 											rcurs = 0;
+											curs+=1;
+
 										} else if (i != leftbatch.size() - 1
 												&& j == rightbatch.size() - 1) {// case
 																				// 2
@@ -217,7 +228,7 @@ public class BlockNestedLoopJoin extends Join {
 							rcurs = 0;
 						}
 						lcurs = 0;
-						m++;
+						curs+=1;
 					}
 				} catch (EOFException e) {
 					try {

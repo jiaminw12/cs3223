@@ -10,7 +10,6 @@ import java.util.StringTokenizer;
 import java.util.Enumeration;
 import java.io.*;
 
-
 public class PlanCost {
 
 	int cost;
@@ -113,7 +112,7 @@ public class PlanCost {
 		int rightattrind = rightschema.indexOf(rightjoinAttr);
 		leftjoinAttr = leftschema.getAttribute(leftattrind);
 		rightjoinAttr = rightschema.getAttribute(rightattrind);
-		
+
 		/** number of distinct values of left and right join attribute **/
 		int leftattrdistn = ((Integer) ht.get(leftjoinAttr)).intValue();
 		int rightattrdistn = ((Integer) ht.get(rightjoinAttr)).intValue();
@@ -133,7 +132,7 @@ public class PlanCost {
 
 		int joincost;
 
-		//System.out.println("PlanCost: jointype="+joinType);
+		// System.out.println("PlanCost: jointype="+joinType);
 
 		switch (joinType) {
 		case JoinType.NESTEDJOIN:
