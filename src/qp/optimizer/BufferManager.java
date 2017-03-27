@@ -20,8 +20,8 @@ public class BufferManager {
 	public static int getBuffersPerJoin() {
 		return buffPerJoin;
 	}
-	
-	public static int getNumBuffer(){
+
+	public static int getNumBuffer() {
 		return numBuffer;
 	}
 

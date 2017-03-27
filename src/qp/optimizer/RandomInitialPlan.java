@@ -172,11 +172,6 @@ public class RandomInitialPlan {
 			int numJMeth = JoinType.numJoinTypes();
 			int joinMeth = RandNumb.randInt(0, numJMeth - 1);
 
-			System.out.println();
-			System.out.println("RandomInitialPlan : " + joinMeth
-					+ " ; numJMeth : " + numJMeth);
-			System.out.println();
-
 			jn.setJoinType(joinMeth);
 
 			modifyHashtable(left, jn);

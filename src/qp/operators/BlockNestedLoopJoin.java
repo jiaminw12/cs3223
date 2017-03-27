@@ -7,19 +7,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
-import qp.optimizer.BufferManager;
 import qp.utils.Attribute;
 import qp.utils.Batch;
-import qp.utils.Condition;
 import qp.utils.Tuple;
 
 public class BlockNestedLoopJoin extends Join {
-	
+
 	int batchsize; // Number of tuples per out batch
 
 	/**
-	 * The following fields are useful during execution of the BlockNestedLoopJoin
+	 * The following fields are useful during execution of the NestedJoin
 	 * operation
 	 **/
 	int leftindex; // Index of the join attribute in left table
@@ -32,44 +32,47 @@ public class BlockNestedLoopJoin extends Join {
 	Batch outbatch; // Output buffer
 	Batch leftbatch; // Buffer for left input stream
 	Batch rightbatch; // Buffer for right input stream
+	List<Batch> block;
+
 	ObjectInputStream in; // File pointer to the right hand materialized file
 
 	int lcurs; // Cursor for left side buffer
 	int rcurs; // Cursor for right side buffer
+	int curs;  // Cursor for inner
 	boolean eosl; // Whether end of stream (left table) is reached
 	boolean eosr; // End of stream (right table)
-	
-	int numOfBufferAvailable; // number of buffer available
-	
+
 	public BlockNestedLoopJoin(Join jn) {
 		super(jn.getLeft(), jn.getRight(), jn.getCondition(), jn.getOpType());
 		schema = jn.getSchema();
 		jointype = jn.getJoinType();
 		numBuff = jn.getNumBuff();
 	}
-	
+
 	/**
 	 * During open finds the index of the join attributes Materializes the right
 	 * hand side into a file Opens the connections
 	 **/
 
 	public boolean open() {
-		
-		numOfBufferAvailable = BufferManager.getNumBuffer();
 
 		/** select number of tuples per batch **/
 		int tuplesize = schema.getTupleSize();
 		batchsize = Batch.getPageSize() / tuplesize;
-		
+
 		Attribute leftattr = con.getLhs();
 		Attribute rightattr = (Attribute) con.getRhs();
 		leftindex = left.getSchema().indexOf(leftattr);
 		rightindex = right.getSchema().indexOf(rightattr);
 		Batch rightpage;
-		
 		/** initialize the cursors of input buffers **/
+
+		block = new ArrayList<Batch>(numBuff - 2);
 		lcurs = 0;
 		rcurs = 0;
+
+		curs = 0;
+
 		eosl = false;
 		/**
 		 * because right stream is to be repetitively scanned if it reached end,
@@ -101,8 +104,8 @@ public class BlockNestedLoopJoin extends Join {
 				}
 				out.close();
 			} catch (IOException io) {
-				System.out
-						.println("BlockNestedLoopJoin:writing the temporay file error");
+				System.out.println(
+						"BlockNestedLoopJoin:writing the temporay file error");
 				return false;
 			}
 			// }
@@ -113,6 +116,7 @@ public class BlockNestedLoopJoin extends Join {
 			return true;
 		else
 			return false;
+
 	}
 
 	/**
@@ -121,22 +125,32 @@ public class BlockNestedLoopJoin extends Join {
 	 **/
 
 	public Batch next() {
+
+		//System.out.println("block size :: " + block.size());
+
 		int i, j;
 		if (eosl) {
 			close();
 			return null;
 		}
-		//outbatch = new Batch(batchsize);
-		outbatch = new Batch(1);
+		outbatch = new Batch(batchsize);
 
 		while (!outbatch.isFull()) {
 
 			if (lcurs == 0 && eosr == true) {
+
 				/** new left page is to be fetched **/
-				// left.next().size() = num of bytes per page / size of tuple 
-				leftbatch.setPageSize(numOfBufferAvailable - 2);
-				leftbatch = (Batch) left.next();
-				if (leftbatch == null) {
+				int z = 0;
+				while (z < numBuff - 2) {
+					leftbatch = (Batch) left.next();
+					block.add(z, leftbatch);
+					if (leftbatch == null) {
+						break;
+					}
+					z++;
+				}
+
+				if (block.get(0) == null) {
 					eosl = true;
 					return outbatch;
 				}
@@ -145,10 +159,12 @@ public class BlockNestedLoopJoin extends Join {
 				 * of right table
 				 **/
 				try {
+
 					in = new ObjectInputStream(new FileInputStream(rfname));
 					eosr = false;
 				} catch (IOException io) {
-					System.err.println("BlockNestedLoopJoin:error in reading the file");
+					System.err.println(
+							"BlockNestedLoopJoin:error in reading the file");
 					System.exit(1);
 				}
 
@@ -158,50 +174,62 @@ public class BlockNestedLoopJoin extends Join {
 
 				try {
 					if (rcurs == 0 && lcurs == 0) {
-						rightbatch.setPageSize(1);
 						rightbatch = (Batch) in.readObject();
 					}
 
-					for (i = lcurs; i < leftbatch.size(); i++) {
-						for (j = rcurs; j < rightbatch.size(); j++) {
+					for (int m = 0; m < block.size(); m++){
+						if (curs == block.size()-1){
+							break;
+						}
 						
-							Tuple lefttuple = leftbatch.elementAt(i);
-							Tuple righttuple = rightbatch.elementAt(j);
-							
-							if (lefttuple.checkJoin(righttuple, leftindex,
-									rightindex)) {
-								Tuple outtuple = lefttuple.joinWith(righttuple);
+						leftbatch = block.get(curs);
+						if (leftbatch == null) {
+							break;
+						}
 
-								Debug.PPrint(outtuple);
-								System.out.println();
-								outbatch.add(outtuple);
-								if (outbatch.isFull()) {
-									if (i == leftbatch.size() - 1
-											&& j == rightbatch.size() - 1) {// case
-																			// 1
-										lcurs = 0;
-										rcurs = 0;
-									} else if (i != leftbatch.size() - 1
-											&& j == rightbatch.size() - 1) {// case
-																			// 2
-										lcurs = i + 1;
-										rcurs = 0;
-									} else if (i == leftbatch.size() - 1
-											&& j != rightbatch.size() - 1) {// case
-																			// 3
-										lcurs = i;
-										rcurs = j + 1;
-									} else {
-										lcurs = i;
-										rcurs = j + 1;
+						for (i = lcurs; i < leftbatch.size(); i++) {
+							for (j = rcurs; j < rightbatch.size(); j++) {
+								Tuple lefttuple = leftbatch.elementAt(i);
+								Tuple righttuple = rightbatch.elementAt(j);
+								if (lefttuple.checkJoin(righttuple, leftindex,
+										rightindex)) {
+									Tuple outtuple = lefttuple
+											.joinWith(righttuple);
+
+									// Debug.PPrint(outtuple);
+									// System.out.println();
+									outbatch.add(outtuple);
+									if (outbatch.isFull()) {
+										if (i == leftbatch.size() - 1
+												&& j == rightbatch.size() - 1) {// case
+																				// 1
+											lcurs = 0;
+											rcurs = 0;
+											curs+=1;
+
+										} else if (i != leftbatch.size() - 1
+												&& j == rightbatch.size() - 1) {// case
+																				// 2
+											lcurs = i + 1;
+											rcurs = 0;
+										} else if (i == leftbatch.size() - 1
+												&& j != rightbatch.size() - 1) {// case
+																				// 3
+											lcurs = i;
+											rcurs = j + 1;
+										} else {
+											lcurs = i;
+											rcurs = j + 1;
+										}
+										return outbatch;
 									}
-									return outbatch;
 								}
 							}
+							rcurs = 0;
 						}
-						rcurs = 0;
+						lcurs = 0;
+						curs+=1;
 					}
-					lcurs = 0;
 				} catch (EOFException e) {
 					try {
 						in.close();
@@ -215,8 +243,8 @@ public class BlockNestedLoopJoin extends Join {
 							"BlockNestedLoopJoin:Some error in deserialization ");
 					System.exit(1);
 				} catch (IOException io) {
-					System.out
-							.println("BlockNestedLoopJoin:temporary file reading error");
+					System.out.println(
+							"BlockNestedLoopJoin:temporary file reading error");
 					System.exit(1);
 				}
 			}
@@ -226,9 +254,11 @@ public class BlockNestedLoopJoin extends Join {
 
 	/** Close the operator */
 	public boolean close() {
+
 		File f = new File(rfname);
 		f.delete();
 		return true;
+
 	}
-	
+
 }
