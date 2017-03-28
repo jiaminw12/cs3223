@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.*;
 import java.lang.*;
 
-public class HashIndexJoin extends Join{
+public class IndexNestedJoin extends Join{
 
 
     int batchsize;  //Number of tuples per out batch
@@ -25,11 +25,11 @@ public class HashIndexJoin extends Join{
     boolean eosl;  // Whether end of stream (left table) is reached
     
     
-    HashMap<Object, Vector<Tuple>> rightMap; // a hash map to store tuples under same value of an attr
+    TreeMap<Object, Vector<Tuple>> rightMap; // a hash map to store tuples under same value of an attr
     Vector<Tuple> valEqual; // to store vectors matches the given attr in hash map
     
 
-    public HashIndexJoin(Join jn){
+    public IndexNestedJoin(Join jn){
         super(jn.getLeft(),jn.getRight(),jn.getCondition(),jn.getOpType());
         schema = jn.getSchema();
         jointype = jn.getJoinType();
@@ -65,7 +65,7 @@ public class HashIndexJoin extends Join{
         if(!right.open()){
             return false;
         } else{    
-            rightMap = new HashMap<Object, Vector<Tuple>>();
+            rightMap = new TreeMap<Object, Vector<Tuple>>();
             while((rightpage = right.next()) != null){
                 readIntoRightMap(rightpage);
             }
@@ -100,6 +100,8 @@ public class HashIndexJoin extends Join{
     	// next----------------");
     	// Debug.PPrint(con);
     	// System.out.println();
+    	
+    	System.out.println("indexNested");
     	
     	int i,j,k;
         if(eosl && lcurs ==0){ 

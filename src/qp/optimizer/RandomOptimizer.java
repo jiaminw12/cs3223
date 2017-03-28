@@ -18,7 +18,7 @@ public class RandomOptimizer {
 	public static final int ASSOCIATIVE = 2; // rearranging the operators by
 												// associative rule
 
-	/** Number of altenative methods available for a node as specified above **/
+	/** Number of alternative methods available for a node as specified above **/
 
 	public static final int NUMCHOICES = 3;
 
