@@ -119,39 +119,45 @@ public class HashIndexJoin extends Join{
                   }
               }
         	 
-           //// more tuples left in the old valEqual for join     
-        	  if(rcurs > 0) 
-                  {
-                  	Tuple l = leftbatch.elementAt(lcurs);
-                  	for (k = rcurs; k < valEqual.size(); k++) {
-                          Tuple r = valEqual.elementAt(k);
-                          if(l.checkJoin(r,leftindex,rightindex)) {
-                              Tuple outtuple = l.joinWith(r);
-                              outbatch.add(outtuple);                 
-                              if(outbatch.isFull()){
-                              	//case1:  more tuples left in valEqual 
-                                  if(k < (valEqual.size()-1)){ 
-                                  	rcurs = k+1;  
-                                  } 
-                                  //case2: all values in valEqual get joined
-                                  else {
-                                  	rcurs=0;
-                                  	lcurs=(lcurs+1)%leftbatch.size();
-                                  }
-                                  return outbatch;
-                              }
-                          }                  
-                      }
-                      //
-                      rcurs = 0;
-                      lcurs=(lcurs+1)%leftbatch.size();
-                  	
-                  }
+        
         	  
-        	//// a new valEqual that matches the current left tuple to be found
-            
+        	
             for (i = lcurs; i < leftbatch.size(); i++) {
-                	Tuple l = leftbatch.elementAt(i);
+                
+        //// more tuples left in the old valEqual for join     
+          	  if(rcurs > 0) 
+                    {
+                    	Tuple l = leftbatch.elementAt(lcurs);
+                    	for (k = rcurs; k < valEqual.size(); k++) {
+                            Tuple r = valEqual.elementAt(k);
+                            if(l.checkJoin(r,leftindex,rightindex)) {
+                                Tuple outtuple = l.joinWith(r);
+                                outbatch.add(outtuple);                 
+                                if(outbatch.isFull()){
+                                	//case1:  more tuples left in valEqual 
+                                    if(k < (valEqual.size()-1)){ 
+                                    	rcurs = k+1;  
+                                    } 
+                                    //case2: all values in valEqual get joined
+                                    else {
+                                    	rcurs=0;
+                                    	lcurs=(lcurs+1)%leftbatch.size();
+                                    }
+                                    return outbatch;
+                                }
+                            }                  
+                        }
+                        //
+                        rcurs = 0;
+                        lcurs=(lcurs+1)%leftbatch.size();
+                        i = lcurs;
+                    	
+                    }
+          	  
+         //// a new valEqual that matches the current left tuple to be found
+              
+            	else	
+            	{Tuple l = leftbatch.elementAt(i);
                 	Object key = l.dataAt(leftindex);
                 	 // filter those unmatched tuples
                     if ((valEqual= rightMap.get(key)) != null) {
@@ -166,7 +172,6 @@ public class HashIndexJoin extends Join{
                                     	
                                         lcurs = (i+1)%leftbatch.size();
                                         rcurs = 0;
-                                        valEqual= new Vector<Tuple>();
                                         
                                     } 
                                     // case2: more tuples left in valEqual
@@ -180,7 +185,8 @@ public class HashIndexJoin extends Join{
                             
                         }
                         rcurs = 0;
-                    }                 
+                    }  
+            	}
             }
             lcurs = 0;
         }
