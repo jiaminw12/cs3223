@@ -380,11 +380,6 @@ public class RandomOptimizer {
 				nj.setNumBuff(numbuff);
 				return nj;
 
-			/**
-			 * Temporarily used simple nested join, replace with hashjoin, if
-			 * implemented
-			 **/
-
 			case JoinType.BLOCKNESTED:
 				BlockNestedLoopJoin bj = new BlockNestedLoopJoin((Join) node);
 				bj.setLeft(left);
@@ -399,13 +394,20 @@ public class RandomOptimizer {
 				sm.setRight(right);
 				sm.setNumBuff(numbuff);
 				return sm;
-
+				
 			case JoinType.HASHJOIN:
 
 				NestedJoin hj = new NestedJoin((Join) node);
-				
-				
 				return hj;
+			
+			case JoinType.INDEXNESTED:
+
+				IndexNestedJoin in = new IndexNestedJoin((Join) node);
+				in.setLeft(left);
+				in.setRight(right);
+				in.setNumBuff(numbuff);
+				return in;
+			
 			default:
 				return node;
 			}
