@@ -1,4 +1,4 @@
-/** performs randomized optimization, iterative improvement algorithm **/
+/** performs randomized optimization, simulated annealing algorithm **/
 
 package qp.optimizer;
 
@@ -36,7 +36,7 @@ public class RandomOptimizer {
 	protected Operator getNeighbor(Operator root) {
 		// Randomly select a node to be altered to get the neighbour
 		int nodeNum = RandNumb.randInt(0, numJoin - 1);
-
+        
 		// Randomly select type of alteration: Change
 		// Method/Associative/Commutative
 		int changeType = RandNumb.randInt(0, NUMCHOICES - 1);
@@ -57,11 +57,14 @@ public class RandomOptimizer {
 	}
 
 	/**
-	 * implementation of Iterative Improvement Algorithm for Randomized
+	 * implementation of Simulated Annealing Algorithm for Randomized
 	 * optimization of Query Plan
 	 **/
 
 	public Operator getOptimizedPlan() {
+		
+		
+		// RandNumb
 
 		/** get an initial plan for the given sql query **/
 
@@ -144,6 +147,7 @@ public class RandomOptimizer {
 			Join node = (Join) findNodeAt(root, joinNum);
 			int prevJoinMeth = node.getJoinType();
 			int joinMeth = RandNumb.randInt(0, numJMeth - 1);
+            
 			while (joinMeth == prevJoinMeth) {
 				joinMeth = RandNumb.randInt(0, numJMeth - 1);
 			}
@@ -387,7 +391,7 @@ public class RandomOptimizer {
 				bj.setNumBuff(numbuff);
 				return bj;
 
-			case JoinType.SORTMERGE:
+			/*case JoinType.SORTMERGE:
 
 				SortMergeJoin sm = new SortMergeJoin((Join) node);
 				sm.setLeft(left);
@@ -398,7 +402,7 @@ public class RandomOptimizer {
 			case JoinType.HASHJOIN:
 
 				NestedJoin hj = new NestedJoin((Join) node);
-				return hj;
+				return hj;*/
 			
 			case JoinType.INDEXNESTED:
 

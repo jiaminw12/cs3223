@@ -74,12 +74,12 @@ public class Debug {
 			case JoinType.BLOCKNESTED:
 				System.out.print("BlockNested(");
 				break;
-			case JoinType.SORTMERGE:
+			/*case JoinType.SORTMERGE:
 				System.out.print("SortMerge(");
 				break;
 			case JoinType.HASHJOIN:
 				System.out.print("HashJoin(");
-				break;
+				break;*/
 			case JoinType.INDEXNESTED:
 				System.out.print("IndexNested(");
 				break;

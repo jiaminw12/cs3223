@@ -129,7 +129,7 @@ public class PlanCost {
 		/** number of buffers allotted to this join **/
 
 		int numbuff = BufferManager.getBuffersPerJoin();
-
+		boolean randomValue = JoinType.getRandomChoice();
 		int joincost;
 
 		// System.out.println("PlanCost: jointype="+joinType);
@@ -139,13 +139,24 @@ public class PlanCost {
 			joincost = leftpages * rightpages;
 			break;
 		case JoinType.BLOCKNESTED:
-			joincost = 0;
+			if (randomValue){
+				joincost = leftpages + (leftpages  / (numbuff - 2)) * rightpages;
+			} else {
+				joincost = 0;
+			}
 			break;
-		case JoinType.SORTMERGE:
+		/*case JoinType.SORTMERGE:
 			joincost = 0;
 			break;
 		case JoinType.HASHJOIN:
 			joincost = 0;
+			break;*/
+		case JoinType.INDEXNESTED:
+			if (randomValue){
+				joincost = (int) (leftpages + leftuplesize*2.2);
+			} else {
+				joincost = 0;
+			}
 			break;
 		default:
 			joincost = 0;

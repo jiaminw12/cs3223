@@ -96,12 +96,18 @@ public class QueryMain {
 		}
 
 		System.out.println("Please choose one of the following: \n "
-				+ "1. Nested Join. \n 2. Block Nested Loop Join. \n 3. Sort Merge Join."
-				+ " \n 4. Hash Join. \n 5. Index Nested Join. ");
+				+ "1. Nested Join. \n 2. Block Nested Loop Join. "
+				+ "\n 3. Index Nested Join. \n 4. Random Choose.");
 		try {
 			temp = in.readLine();
 			int choice = Integer.parseInt(temp);
-			JoinType.setNumJoinTypes(choice);
+			
+			if (choice == 4){
+				JoinType.setNumJoinTypes(3);
+				JoinType.setRandomChoice();
+			} else {
+				JoinType.setNumJoinTypes(choice);
+			}
 			System.out.println();
 		} catch (Exception e) {
 			e.printStackTrace();

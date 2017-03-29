@@ -430,17 +430,27 @@ public class RandomOptimizer01 {
 				bj.setNumBuff(numbuff);
 				return bj;
 
-			case JoinType.SORTMERGE:
+			/*case JoinType.SORTMERGE:
 
-				NestedJoin sm = new NestedJoin((Join) node);
-				/* + other code */
+				SortMergeJoin sm = new SortMergeJoin((Join) node);
+				sm.setLeft(left);
+				sm.setRight(right);
+				sm.setNumBuff(numbuff);
 				return sm;
-
+				
 			case JoinType.HASHJOIN:
 
 				NestedJoin hj = new NestedJoin((Join) node);
-				/* + other code */
-				return hj;
+				return hj;*/
+			
+			case JoinType.INDEXNESTED:
+
+				IndexNestedJoin in = new IndexNestedJoin((Join) node);
+				in.setLeft(left);
+				in.setRight(right);
+				in.setNumBuff(numbuff);
+				return in;
+			
 			default:
 				return node;
 			}
